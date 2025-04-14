@@ -1,4 +1,5 @@
 # TP1 - Punto 3
+
 import fitz # Manipular archivos PDF
 from unidecode import unidecode # Eliminar acentos y caracteres especiales
 import re # Expresiones regulares
@@ -12,21 +13,21 @@ def read_pdf(file_name):
   return text # Devuelve el texto completo del PDF
 
 def load_stopwords(stopwords_file):
-  with open(stopwords_file, 'r', encoding='utf-8') as file:
+  with open(stopwords_file, "r", encoding="utf-8") as file:
     stopwords = [line.strip() for line in file] # Carga las stopwords desde el archivo
   return stopwords # Devuelve la lista de stopwords
 
 def remove_stopwords(text, stopwords):
   # Remueve caracteres especiales y convierte a minúsculas sin acentos
-  text = re.sub(r'[^\w\s]', '', unidecode(text.lower()))
+  text = re.sub(r"[^\w\s]", "", unidecode(text.lower()))
   
   words = text.split() # Divide el texto en palabras
   filtered_words = [word for word in words if word not in stopwords] # Filtra las stopwords
-  filtered_text = ' '.join(filtered_words) # Une las palabras filtradas en un solo string
+  filtered_text = " ".join(filtered_words) # Une las palabras filtradas en un solo string
   return filtered_text # Devuelve el texto filtrado
 
 def read_pdf_thread(location, name, dictionary, sem):
-  file_name = location  # Cambia esto por el nombre de tu archivo PDF
+  file_name = location # Cambia esto por el nombre de tu archivo PDF
   pdf_text = read_pdf(file_name) # Lee el PDF
   
   stopwords_file = "spanish.txt"  # Archivo de stopwords en español
@@ -53,11 +54,11 @@ def load_dictionary(text, name, dictionary, sem):
 dictionary = {} # Diccionario para almacenar las palabras y sus conteos
 sem = threading.Semaphore(1) # Semáforo para acceso seguro al diccionario
 
-thread1 = threading.Thread(target=read_pdf_thread, args=('Doc1.pdf', "Doc1", dictionary, sem))
-thread2 = threading.Thread(target=read_pdf_thread, args=('Doc2.pdf', "Doc2", dictionary, sem))
-thread3 = threading.Thread(target=read_pdf_thread, args=('Doc3.pdf', "Doc3", dictionary, sem))
-thread4 = threading.Thread(target=read_pdf_thread, args=('Doc4.pdf', "Doc4", dictionary, sem))
-thread5 = threading.Thread(target=read_pdf_thread, args=('Doc5.pdf', "Doc5", dictionary, sem))
+thread1 = threading.Thread(target=read_pdf_thread, args=("Doc1.pdf", "Doc1.pdf", dictionary, sem))
+thread2 = threading.Thread(target=read_pdf_thread, args=("Doc2.pdf", "Doc2.pdf", dictionary, sem))
+thread3 = threading.Thread(target=read_pdf_thread, args=("Doc3.pdf", "Doc3.pdf", dictionary, sem))
+thread4 = threading.Thread(target=read_pdf_thread, args=("Doc4.pdf", "Doc4.pdf", dictionary, sem))
+thread5 = threading.Thread(target=read_pdf_thread, args=("Doc5.pdf", "Doc5.pdf", dictionary, sem))
 
 thread1.start() # Inicia el hilo 1
 thread2.start() # Inicia el hilo 2
@@ -72,6 +73,7 @@ thread4.join() # Espera a que el hilo 4 termine
 thread5.join() # Espera a que el hilo 5 termine
 # El diccionario contiene las palabras y sus conteos
 
+print("\nFichero Invertido por Frecuencia:")
 for word, items in dictionary.items():
   print(word, items) # Imprime el diccionario con las palabras y sus conteos
 # El formato de salida es: palabra: [[nombre_del_documento, conteo], ...]
