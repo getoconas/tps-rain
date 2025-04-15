@@ -34,16 +34,8 @@ def remove_stopwords_for_positions(positions, stopwords):
             filtered_positions[word] = pos_list
     return filtered_positions
 
-def read_pdf_thread_positional(location, name, positional_dictionary, sem):
-    file_name = location
-    pdf_text, word_positions = read_pdf_with_positions(file_name)
-
-    stopwords_file = "spanish.txt"  # Archivo de stopwords en español
-    stopwords = load_stopwords(stopwords_file)  # Carga las stopwords
-
-    filtered_positions = remove_stopwords_for_positions(word_positions, stopwords)
-
-    load_positional_dictionary(filtered_positions, name, positional_dictionary, sem)
+positional_dictionary = {}  # Diccionario para almacenar las palabras y sus posiciones
+sem_positional = threading.Semaphore(1)  # Semáforo para acceso seguro al diccionario posicional
 
 def load_positional_dictionary(positions, name, positional_dictionary, sem):
     for word, pos_list in positions.items():
@@ -54,8 +46,16 @@ def load_positional_dictionary(positions, name, positional_dictionary, sem):
             positional_dictionary[word] = [[name, pos_list]]
         sem.release()  # Libera el semáforo
 
-positional_dictionary = {}  # Diccionario para almacenar las palabras y sus posiciones
-sem_positional = threading.Semaphore(1)  # Semáforo para acceso seguro al diccionario posicional
+def read_pdf_thread_positional(location, name, positional_dictionary, sem):
+    file_name = location
+    pdf_text, word_positions = read_pdf_with_positions(file_name)
+
+    stopwords_file = "spanish.txt"  # Archivo de stopwords en español
+    stopwords = load_stopwords(stopwords_file)  # Carga las stopwords
+
+    filtered_positions = remove_stopwords_for_positions(word_positions, stopwords)
+
+    load_positional_dictionary(filtered_positions, name, positional_dictionary, sem)
 
 thread1_pos = threading.Thread(target=read_pdf_thread_positional, args=("Doc1.pdf", "Doc1", positional_dictionary, sem_positional))
 thread2_pos = threading.Thread(target=read_pdf_thread_positional, args=("Doc2.pdf", "Doc2", positional_dictionary, sem_positional))
@@ -86,10 +86,10 @@ def search_phrase(phrase, positional_dictionary):
     words = [re.sub(r"[^\w\s]", "", unidecode(word.lower())) for word in phrase.split() if word.lower() not in stopwords]
 
     if not words:
-        return "No relevant terms found in the query."
+        return "No se encontraron términos relevantes en la consulta."
 
     if words[0] not in positional_dictionary:
-        return f"No occurrences of the phrase '{phrase}' were found."
+        return f"No se encontraron ocurrencias de la frase '{phrase}'."
 
     results = {}
 
@@ -107,7 +107,7 @@ def search_phrase(phrase, positional_dictionary):
             if match:
                 results.setdefault(doc_name, []).append(list(range(start_pos, start_pos + len(words))))
 
-    return results if results else f"No occurrences of the phrase '{phrase}' were found."
+    return results if results else f"No se encontraron ocurrencias de la frase  '{phrase}'."
 
 
 def word_frequency(positional_dictionary, word):
@@ -119,7 +119,7 @@ def word_frequency(positional_dictionary, word):
         for document, positions in positional_dictionary[normalized_word]:
             results[document] = len(positions)  # Cuenta cuántas veces aparece en cada documento
     else:
-        print(f"The word '{word}' was not found in the dictionary.")
+        print(f"La palabra '{word}' no se encuentra en el diccionario.")
     
     return results
 
@@ -153,32 +153,35 @@ def proximity_query(positional_dictionary, word1, word2, max_distance):
 
     return nearby_documents
 
-# # Realizar 4 consultas distintas
-quest1 = "arxiv"
+# Realizar 4 consultas distintas
+#quest1 = "arxiv"
+print("\nConsulta 1: ")
+quest1 = input("Ingrese la palabra de la cual quiere saber la frecuencia en los documentos: ")
 frequencies = word_frequency(positional_dictionary, quest1)
+if len(frequencies)!=0:
+    print(f"\nEn que documentos aparece '{quest1}' y con que frecuencia?")
+    for doc, freq in frequencies.items():
+        print(f"- {doc}: {freq} veces")
 
-print(f"\nIn which documents does '{quest1}' appear and how frequently?")
-for doc, freq in frequencies.items():
-    print(f"- {doc}: {freq} times")
-
-
-
-quest2 = proximity_query(positional_dictionary, "aprendizaje", "automático", 5)
-
-print("\nDocumentos donde 'aprendizaje' aparece cerca de 'automático' (máx. 5 palabras):")
+#quest2 = proximity_query(positional_dictionary, "aprendizaje", "automático", 5)
+print("\nConsulta 2: ")
+word1, word2=input("Ingrese las palabras de la cuales quiere saber si son proximas en el documento separadas por un espacio: ").split()
+distance=int(input("Ingrese la distancia maxima entre las cuales pueden estar el par de palabras ingresadas: "))
+quest2 = proximity_query(positional_dictionary, word1, word2, distance)
 if quest2:
+    print(f"\nDocumentos donde {word1} aparece cerca de {word2} (máx. {distance} palabras):")
     for doc in quest2:
         print(f"- {doc}")
-else:
-    print("No se encontraron documentos que cumplan la condición.")
 
-quest3 = "inteligencia artificial"
+#quest3 = "inteligencia artificial"
+quest3 = input("\nIngrese la palabra o frase de la cual quiere saber la posicion en los documentos: ")
 response3 = search_phrase(quest3, positional_dictionary)
-print(f"\nConsulta 1: '{quest3}'")
+print(f"\nConsulta 3: '{quest3}'")
 print(f"Resultados: {response3}")
 
-quest4 = "aprendizaje automático"
+#quest4 = "aprendizaje automático"
+quest4 = input("\nIngrese la palabra o frase de la cual quiere saber la posicion en los documentos: ")
 response4 = search_phrase(quest4, positional_dictionary)
-print(f"\nConsulta 3: '{quest4}'")
+print(f"\nConsulta 4: '{quest4}'")
 print(f"Resultados: {response4}")
 

@@ -26,16 +26,8 @@ def remove_stopwords(text, stopwords):
   filtered_text = " ".join(filtered_words) # Une las palabras filtradas en un solo string
   return filtered_text # Devuelve el texto filtrado
 
-def read_pdf_thread(location, name, dictionary, sem):
-  file_name = location # Cambia esto por el nombre de tu archivo PDF
-  pdf_text = read_pdf(file_name) # Lee el PDF
-  
-  stopwords_file = "spanish.txt"  # Archivo de stopwords en español
-  stopwords = load_stopwords(stopwords_file) # Carga las stopwords
-  
-  text = remove_stopwords(pdf_text, stopwords) # Remueve las stopwords del texto del PDF
-  
-  load_dictionary(text, name, dictionary, sem) # Carga el texto filtrado en el diccionario
+dictionary = {} # Diccionario para almacenar las palabras y sus conteos
+sem = threading.Semaphore(1) # Semáforo para acceso seguro al diccionario
 
 def load_dictionary(text, name, dictionary, sem):
   words = text.split() # Divide el texto en palabras
@@ -51,8 +43,16 @@ def load_dictionary(text, name, dictionary, sem):
       dictionary[word] = [[name, count]] # Crea una nueva entrada en el diccionario
     sem.release() # Libera el semáforo
 
-dictionary = {} # Diccionario para almacenar las palabras y sus conteos
-sem = threading.Semaphore(1) # Semáforo para acceso seguro al diccionario
+def read_pdf_thread(location, name, dictionary, sem):
+  file_name = location 
+  pdf_text = read_pdf(file_name) # Lee el PDF
+  
+  stopwords_file = "spanish.txt"  # Archivo de stopwords en español
+  stopwords = load_stopwords(stopwords_file) # Carga las stopwords
+  text = remove_stopwords(pdf_text, stopwords) # Remueve las stopwords del texto del PDF
+  load_dictionary(text, name, dictionary, sem) # Carga el texto filtrado en el diccionario
+
+
 
 thread1 = threading.Thread(target=read_pdf_thread, args=("Doc1.pdf", "Doc1.pdf", dictionary, sem))
 thread2 = threading.Thread(target=read_pdf_thread, args=("Doc2.pdf", "Doc2.pdf", dictionary, sem))
