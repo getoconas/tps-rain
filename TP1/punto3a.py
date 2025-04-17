@@ -1,4 +1,5 @@
 # TP1 - Punto 3
+# Fichero invertido por frecuencia
 
 import fitz # Manipular archivos PDF
 from unidecode import unidecode # Eliminar acentos y caracteres especiales
@@ -20,7 +21,6 @@ def load_stopwords(stopwords_file):
 def remove_stopwords(text, stopwords):
   # Remueve caracteres especiales y convierte a minúsculas sin acentos
   text = re.sub(r"[^\w\s]", "", unidecode(text.lower()))
-  
   words = text.split() # Divide el texto en palabras
   filtered_words = [word for word in words if word not in stopwords] # Filtra las stopwords
   filtered_text = " ".join(filtered_words) # Une las palabras filtradas en un solo string
@@ -32,6 +32,7 @@ sem = threading.Semaphore(1) # Semáforo para acceso seguro al diccionario
 def load_dictionary(text, name, dictionary, sem):
   words = text.split() # Divide el texto en palabras
   word_count = {} # Diccionario para contar las palabras
+
   for word in words:
     word_count[word] = word_count.get(word, 0) + 1 # Cuenta la frecuencia de cada palabra
     
@@ -52,13 +53,11 @@ def read_pdf_thread(location, name, dictionary, sem):
   text = remove_stopwords(pdf_text, stopwords) # Remueve las stopwords del texto del PDF
   load_dictionary(text, name, dictionary, sem) # Carga el texto filtrado en el diccionario
 
-
-
-thread1 = threading.Thread(target=read_pdf_thread, args=("Doc1.pdf", "Doc1.pdf", dictionary, sem))
-thread2 = threading.Thread(target=read_pdf_thread, args=("Doc2.pdf", "Doc2.pdf", dictionary, sem))
-thread3 = threading.Thread(target=read_pdf_thread, args=("Doc3.pdf", "Doc3.pdf", dictionary, sem))
-thread4 = threading.Thread(target=read_pdf_thread, args=("Doc4.pdf", "Doc4.pdf", dictionary, sem))
-thread5 = threading.Thread(target=read_pdf_thread, args=("Doc5.pdf", "Doc5.pdf", dictionary, sem))
+thread1 = threading.Thread(target = read_pdf_thread, args = ("Doc1.pdf", "Doc1.pdf", dictionary, sem))
+thread2 = threading.Thread(target = read_pdf_thread, args = ("Doc2.pdf", "Doc2.pdf", dictionary, sem))
+thread3 = threading.Thread(target = read_pdf_thread, args = ("Doc3.pdf", "Doc3.pdf", dictionary, sem))
+thread4 = threading.Thread(target = read_pdf_thread, args = ("Doc4.pdf", "Doc4.pdf", dictionary, sem))
+thread5 = threading.Thread(target = read_pdf_thread, args = ("Doc5.pdf", "Doc5.pdf", dictionary, sem))
 
 thread1.start() # Inicia el hilo 1
 thread2.start() # Inicia el hilo 2
