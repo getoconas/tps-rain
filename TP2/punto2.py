@@ -20,7 +20,6 @@ words_tokenize = word_tokenize(text.lower())
 # Eliminar las stopwords del texto
 stop_words = set(stopwords.words('english'))
 words_filtered = [w for w in words_tokenize if not w.lower() in stop_words]
-
 #print(words_filtered)
 
 # Inicializar los stemmers
