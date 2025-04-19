@@ -19,10 +19,12 @@ De manera general, los dominios iniciales de aplicación de los sistemas recomen
 Específicamente, resulta importante en los últimos años el desarrollo de sistemas recomendadores en el dominio del turismo[]. En este dominio existe mucha información en línea disponible y por tanto los sistemas recomendadores juegan un papel muy importante con vistas a ayudar a los usuarios en la toma de decisiones sobre qué paquete turístico comprar, qué instalación hotelera visitar, o qué recorrido turístico elegir, entre otras decisiones similares a tomar con vistas a lograr la satisfacción final del cliente [].
 """
 
-text = text.replace('[','').replace(']','').replace('.','').replace(',','') #.replace('-','')
+#text = text.replace('[','').replace(']','').replace('.','').replace(',','') #.replace('-','')
+puntuactions= "][:!.,;?[]"
 
 # Tokenizar el texto y eliminar las stopwords
 words_tokenize = word_tokenize(text)
+words_tokenize = [word for word in words_tokenize if word not in puntuactions]
 
 # Quitar acentos y letras "ñ" de las palabras tokenizadas
 words_tokenize = [unicodedata.normalize('NFKD', word).encode('ASCII', 'ignore').decode('utf-8') for word in words_tokenize]
@@ -37,6 +39,7 @@ words_filtered = []
 for w in words_tokenize:
   if w not in stop_words:
     words_filtered.append(w)
+    
 
 print("------------------------------------------------------------------")
 print(words_tokenize)
