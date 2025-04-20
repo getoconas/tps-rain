@@ -5,7 +5,7 @@ from nltk.stem import PorterStemmer, LancasterStemmer
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 
-from tabulate import tabulate
+from tabulate import tabulate # Para mostrar la tabla
 
 # Texto
 text = """
@@ -20,7 +20,6 @@ words_tokenize = word_tokenize(text.lower())
 # Eliminar las stopwords del texto
 stop_words = set(stopwords.words('english'))
 words_filtered = [w for w in words_tokenize if not w.lower() in stop_words]
-#print(words_filtered)
 
 # Inicializar los stemmers
 porter = PorterStemmer()
@@ -34,9 +33,9 @@ lancaster_stems = [lancaster.stem(token) for token in words_filtered]
 tabla_data = zip(words_filtered, porter_stems, lancaster_stems)
 
 # Definir los encabezados de la tabla
-headers = ["Termino", "Porter", "Lancaster"]
+headers = [" TERMINO ", " PORTER ", " LANCASTER "]
 
 # Imprimir la tabla en formato encolumnado
 print(tabulate(tabla_data, headers = headers, tablefmt = "grid"))
 
-print("Fin del programa") # Mensaje de finalización del programa
+print("   *** Fin del programa ***") # Mensaje de finalización del programa
