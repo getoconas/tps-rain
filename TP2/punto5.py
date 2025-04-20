@@ -1,6 +1,5 @@
 import re
 import nltk
-from nltk import ngrams
 from nltk.corpus import stopwords 
 import unicodedata 
 try:
@@ -36,37 +35,3 @@ print("------------------------------------------------------------------")
 for i, prayer in enumerate(prayers_tokenized[:10]):
     num = i + 1  # Los índices comienzan en 0, así que sumamos 1
     print(f"{num}: {prayer}")
-
-
-
-
-
-
-# # puntuactions= "'][:!.,;?[]''``()--'"
-
-# # text_tokenized = [word for word in text_tokenized if word not in puntuactions]
-# text_constructed= ' '.join(text_tokenized)
-
-# text_normalized = unicodedata.normalize('NFKD', text_constructed).encode('ASCII', 'ignore').decode('utf-8')
-
-# stopwords = set(stopwords.words('english')) # Obtener las stop words en español
-
-# words = text_normalized.split() # Dividir el texto en palabras
-
-# words_filtered = [word for word in words if word.lower() not in stopwords]
-
-# print("------------------------------------------------------------------")
-# print("   Texto normalizado y filtrado   ")
-# print("------------------------------------------------------------------")
-# text_constructed= ' '.join(words)
-# print(len(text_constructed))
-# print(text_constructed)
-
-
-# # bigrams = list(ngrams(words_filtered, 2))
-# # print(bigrams)
-
-# # print("   *** Bigramas ***  ")
-# # for bigram in bigrams:
-# #   print(' '.join(bigram))
-

@@ -1,5 +1,4 @@
 # TP2 - Punto 1
-
 # NTLK
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
