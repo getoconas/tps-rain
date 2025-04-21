@@ -45,11 +45,11 @@ for word, freq in list(frecuency_ordered.items())[:50]:
   print(f"{word}: {freq}")
 print("------------------------------------------------------------------")
 
-# Inicializar los stemmers
+# Inicializar el stemming y la lematizacion
 lancaster = LancasterStemmer()
 lemmatizer = WordNetLemmatizer()
 
-# Realizar el stemming con ambos algoritmos
+# Realizar el stemming y la lematizacion con ambos algoritmos
 wordnet_lemmas = [lemmatizer.lemmatize(token) for token in words_filtered]
 lancaster_stems = [lancaster.stem(token) for token in words_filtered]
 
@@ -119,7 +119,7 @@ for i, (token, tag) in enumerate(tagged_words_first_30):
   table_data.append([token, lancaster_stem, wordnet_lemma, verb_lemma_pos])
 
 print("   *** Representación tabular de los primeros 30 tokens ***")
-headers = ["Término", "Porter Stem", "Lematización", "Lematización (Verbo PoS)"]
+headers = ["Término", "Lancaster Stem", "Lematización", "Lematización (Verbo PoS)"]
 print(tabulate(table_data, headers = headers, tablefmt = "grid"))
 print("------------------------------------------------------------------")
 
