@@ -18,8 +18,6 @@ text = """
 # A. Eliminacion de ruido
 text = text.replace("''",'').replace("--",'').replace("'",'')
 
-#print(text)
-
 # B. Tokenizar el texto
 puntuactions = "#().,;:!"
 words_tokenize = word_tokenize(text.lower())

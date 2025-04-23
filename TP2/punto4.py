@@ -1,6 +1,5 @@
 # TP2 - Punto 4
 
-import re
 from nltk.corpus import stopwords 
 import unicodedata 
 from nltk import ngrams
