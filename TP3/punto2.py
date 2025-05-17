@@ -26,6 +26,17 @@ def get_details_news(url):
     summary_news = unidecode(summary_element_news).lower() if summary_element_news else "*** No se encontro resumen de la noticia ***"
     print('*** Resumen noticia: ***', summary_news)
 
+    # Contenido de la noticia
+    content_element_news = soup.find('div', class_='body-article')
+    #content_news = unidecode(content_element_news).lower() if content_element_news else "*** No se encontro contenido de la noticia ***"
+    #print('*** Contenido noticia: ***', content_element_news)
+
+    print("------------------------------------------------------------------------------------------------------------")
+    if content_element_news:
+      content_news = content_element_news.find_all(['p', 'h2'])
+      content = [unidecode(c.get_text(separator=" ", strip=True)).lower() for c in content_news]
+      print (content)
+
 # Programa principal
 # Realizar la solicitud HTTP a la página web
 response = requests.get(url)
@@ -38,7 +49,7 @@ if response.status_code == 200:
   
   textos = []
 
-  for i, news in enumerate(arrayNews[:10], start = 1):
+  for i, news in enumerate(arrayNews[:2], start = 1):
     print(f"Noticia {i}:")
     # URL de la noticia
     news_href = news.get('href')
@@ -48,5 +59,5 @@ if response.status_code == 200:
         news_href = 'https://www.infobae.com' + news_href
         print('*** vinculo noticia: ***', news_href)
         get_details_news(news_href)
-        print("------------------------------------------------------------------------")
+        print("------------------------------------------------------------------------------------------------------------")
 
