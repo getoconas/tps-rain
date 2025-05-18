@@ -2,7 +2,11 @@ import re # re es una biblioteca para trabajar con expresiones regulares
 import requests # requests es una biblioteca para realizar solicitudes HTTP
 from bs4 import BeautifulSoup # BeautifulSoup es una biblioteca para analizar documentos HTML y XML
 from unidecode import unidecode # unidecode es una biblioteca para convertir caracteres Unicode a ASCII
+from collections import Counter # Counter sirve para contar elementos hashables
+
 import nltk
+from nltk.tokenize import word_tokenize # word_tokenize para tokenizar texto
+from nltk.corpus import stopwords # stopwords para filtrar palabras vacías
 
 # Descargar datos necesarios para NLTK
 nltk.download('punkt')
@@ -19,7 +23,7 @@ def get_details_news(url):
 
     # Titulo de la noticia
     title_element_news = soup.find('h1', class_='display-block article-headline text_align_left').text.strip() 
-    title_news = unidecode(title_element_news).lower() if title_element_news else "*** No se encontro titulo de la noticia ***" # Convertir el título a ASCII, eliminar acentos y convertir a minúsculas
+    title_news = unidecode(title_element_news).lower() if title_element_news else "*** No se encontro titulo de la noticia ***" 
     
     # Resumen de la noticia
     summary_element_news = soup.find('h2', class_='article-subheadline text_align_left').text.strip()
@@ -27,7 +31,6 @@ def get_details_news(url):
 
     # Contenido de la noticia
     content_element_news = soup.find('div', class_='body-article')
-
     if content_element_news:
       content = content_element_news.find_all(['p', 'h2'])
       content_news = [unidecode(c.get_text(separator=" ", strip=True)).lower() for c in content]
@@ -57,22 +60,22 @@ def get_details_news(url):
       'content': content_total_news,
       'images': images_news
     }
-
+  else:
+    print(f"*** Error al obtener la noticia: {response.status_code} ***")
+    return None 
 
 # Programa principal
 # Realizar la solicitud HTTP a la página web
 response = requests.get(url)
-#print(response)
 
-# Verificar si la solicitud fue exitosa (código de estado 200)
-if response.status_code == 200:
+if response.status_code == 200: # Verificar si la solicitud fue exitosa (código de estado 200)
   soup = BeautifulSoup(response.content, 'html.parser') # Crear un objeto BeautifulSoup para analizar el contenido HTML
   arrayNews = soup.find_all('a', class_='story-card-ctn') # Encontrar todas las etiquetas <a> con la clase 'story-card-ctn'
   
-  textos = []
+  text = []
 
   for i, news in enumerate(arrayNews[:2], start = 1):
-    print(f"Noticia {i}:")
+    print(f"---------- Noticia {i} ----------")
     # URL de la noticia
     news_url = news.get('href')
         
@@ -81,10 +84,42 @@ if response.status_code == 200:
         news_url = 'https://www.infobae.com' + news_url
 
         details_news = get_details_news(news_url)
+        if details_news:
+          # Imprimir los detalles de la noticia
+          print("Titulo: ", details_news['title'])
+          print("Resumen: ", details_news['summary'])
+          print("Cuerpo: ", details_news['content'])
+          print("Imagenes: ", details_news['images'])
+          print("\n")
 
-        print('*** Detalles noticia: ***')
-        print(details_news)
+          # Agregar a text para el analisis de los terminos frecuentes
+          text.append(details_news['title'])
+          text.append(details_news['summary'])
+          text.append(details_news['content'])
+        else:
+          print("*** No se encontraron detalles de la noticia ***")
+    else:
+      print("*** No se encontro la URL de la noticia ***")
+else:
+  print(f"*** Error al obtener la página principal: {response.status_code} ***")
+  
+# Concatenar todas las noticias
+text_complete = ' '.join(text)
 
-        #get_details_news(news_href)
-        print("------------------------------------------------------------------------------------------------------------")
+# Tokenizar el texto
+tokens = word_tokenize(text_complete)
+
+# Filtrar stopwords
+stop_words = set(stopwords.words('spanish'))
+filtered_tokens = [word for word in tokens if word.isalnum() and word.lower() not in stop_words]
+
+# Contar la frecuencia de cada palabra
+frecuency_words = Counter(filtered_tokens)
+most_common_words = frecuency_words.most_common(100)
+
+# Mostrar los 100 términos más frecuentes
+print("---------- Los 100 términos más frecuentes ----------")
+for word, count in most_common_words:
+  print(f"{word}: {count}")
+
 
