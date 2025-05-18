@@ -20,12 +20,10 @@ def get_details_news(url):
     # Titulo de la noticia
     title_element_news = soup.find('h1', class_='display-block article-headline text_align_left').text.strip() 
     title_news = unidecode(title_element_news).lower() if title_element_news else "*** No se encontro titulo de la noticia ***" # Convertir el título a ASCII, eliminar acentos y convertir a minúsculas
-    #print('*** Titulo noticia: ***', title_news)
-
+    
     # Resumen de la noticia
     summary_element_news = soup.find('h2', class_='article-subheadline text_align_left').text.strip()
     summary_news = unidecode(summary_element_news).lower() if summary_element_news else "*** No se encontro resumen de la noticia ***"
-    #print('*** Resumen noticia: ***', summary_news)
 
     # Contenido de la noticia
     content_element_news = soup.find('div', class_='body-article')
@@ -33,7 +31,6 @@ def get_details_news(url):
     if content_element_news:
       content = content_element_news.find_all(['p', 'h2'])
       content_news = [unidecode(c.get_text(separator=" ", strip=True)).lower() for c in content]
-      #print (content_news)
 
     # Imagenes dentro de la noticia
     images_news = []
@@ -53,11 +50,13 @@ def get_details_news(url):
     content_total_news = ""
     for i in range(len(content_news)):
       content_total_news += content_news[i] + " "
-
-    print("------------------------------------------------------------------------------------------------------------")
-    print('*** Titulo noticia: ***', title_news)
-    print('*** Resumen noticia: ***', summary_news)
-    print('*** Contenido noticia: ***', content_total_news)
+    
+    return {
+      'title': title_news,
+      'summary': summary_news,
+      'content': content_total_news,
+      'images': images_news
+    }
 
 
 # Programa principal
@@ -75,12 +74,17 @@ if response.status_code == 200:
   for i, news in enumerate(arrayNews[:2], start = 1):
     print(f"Noticia {i}:")
     # URL de la noticia
-    news_href = news.get('href')
+    news_url = news.get('href')
         
-    if news_href:
-      if not news_href.startswith('http'):
-        news_href = 'https://www.infobae.com' + news_href
-        print('*** vinculo noticia: ***', news_href)
-        get_details_news(news_href)
+    if news_url:
+      if not news_url.startswith('http'):
+        news_url = 'https://www.infobae.com' + news_url
+
+        details_news = get_details_news(news_url)
+
+        print('*** Detalles noticia: ***')
+        print(details_news)
+
+        #get_details_news(news_href)
         print("------------------------------------------------------------------------------------------------------------")
 
