@@ -1,8 +1,9 @@
-import re # re es una biblioteca para trabajar con expresiones regulares
-import requests # requests es una biblioteca para realizar solicitudes HTTP
-from bs4 import BeautifulSoup # BeautifulSoup es una biblioteca para analizar documentos HTML y XML
-from unidecode import unidecode # unidecode es una biblioteca para convertir caracteres Unicode a ASCII
+import re # trabajar con expresiones regulares
+import requests # realizar solicitudes HTTP
+from bs4 import BeautifulSoup # analizar documentos HTML y XML
+from unidecode import unidecode # convertir caracteres Unicode a ASCII
 from collections import Counter # Counter sirve para contar elementos hashables
+import matplotlib.pyplot as plt # para crear gráficos
 
 import nltk
 from nltk.tokenize import word_tokenize # word_tokenize para tokenizar texto
@@ -74,7 +75,7 @@ if response.status_code == 200: # Verificar si la solicitud fue exitosa (código
   
   text = []
 
-  for i, news in enumerate(arrayNews[:2], start = 1):
+  for i, news in enumerate(arrayNews[:10], start = 1):
     print(f"---------- Noticia {i} ----------")
     # URL de la noticia
     news_url = news.get('href')
@@ -122,4 +123,17 @@ print("---------- Los 100 términos más frecuentes ----------")
 for word, count in most_common_words:
   print(f"{word}: {count}")
 
+# Crear el grafico de los 100 términos más frecuentes
+word_graph = [word for word, _ in most_common_words]
+frecuency_graph = [frecuency for _, frecuency in most_common_words]
 
+print("\n*** Mostrando grafico de los 100 terminos mas frecuentes ***")
+plt.figure(figsize=(15, 7))
+plt.bar(word_graph, frecuency_graph)
+plt.xticks(rotation=90)
+plt.title('100 términos más frecuentes')
+plt.xlabel('Terminos')
+plt.ylabel('Frecuencia')
+plt.show()
+
+print("\n*** Fin del programa ***") # Mensaje de finalización del programa
