@@ -19,7 +19,7 @@ url = 'https://www.infobae.com/economia/'
 # Función para obtener los detalles de la noticia que se manda por la URL
 def get_details_news(url):
   response = requests.get(url) # Realizar la solicitud HTTP a la página web
-  if response.status_code == 200: # Verificar si la solicitud fue exitosa (código de estado 200)
+  if response.status_code == 200: # Verificar si la solicitud fue exitosa (200 OK)
     soup = BeautifulSoup(response.content, 'html.parser') # Crear un objeto BeautifulSoup para analizar el contenido HTML
 
     # Titulo de la noticia
@@ -45,8 +45,6 @@ def get_details_news(url):
         if img_url:
           images_news.append(img_url)
     
-    #print('*** Imagenes noticia: ***', images_news)
-
     # Eliminar signos de puntuacion del titulo, resumen y contenido
     title_news = re.sub(r'[^\w\s]', '', title_news)
     summary_news = re.sub(r'[^\w\s]', '', summary_news)
@@ -65,11 +63,11 @@ def get_details_news(url):
     print(f"*** Error al obtener la noticia: {response.status_code} ***")
     return None 
 
-# Programa principal
+# Programa Principal
 # Realizar la solicitud HTTP a la página web
 response = requests.get(url)
 
-if response.status_code == 200: # Verificar si la solicitud fue exitosa (código de estado 200)
+if response.status_code == 200: # Verificar si la solicitud fue exitosa (200 OK)
   soup = BeautifulSoup(response.content, 'html.parser') # Crear un objeto BeautifulSoup para analizar el contenido HTML
   arrayNews = soup.find_all('a', class_='story-card-ctn') # Encontrar todas las etiquetas <a> con la clase 'story-card-ctn'
   
@@ -77,14 +75,13 @@ if response.status_code == 200: # Verificar si la solicitud fue exitosa (código
 
   for i, news in enumerate(arrayNews[:10], start = 1):
     print(f"---------- Noticia {i} ----------")
-    # URL de la noticia
-    news_url = news.get('href')
-        
+    
+    news_url = news.get('href') # URL de la noticia
+    
     if news_url:
-      if not news_url.startswith('http'):
+      if not news_url.startswith('http'): # Verificar si la URL no comienza con 'http'
         news_url = 'https://www.infobae.com' + news_url
-
-        details_news = get_details_news(news_url)
+        details_news = get_details_news(news_url) # Obtener los detalles de la noticia en el metodo get_details_news
         if details_news:
           # Imprimir los detalles de la noticia
           print("Titulo: ", details_news['title'])
@@ -92,7 +89,6 @@ if response.status_code == 200: # Verificar si la solicitud fue exitosa (código
           print("Cuerpo: ", details_news['content'])
           print("Imagenes: ", details_news['images'])
           print("\n")
-
           # Agregar a text para el analisis de los terminos frecuentes
           text.append(details_news['title'])
           text.append(details_news['summary'])
