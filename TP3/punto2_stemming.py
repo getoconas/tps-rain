@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt # para crear gráficos
 import nltk
 from nltk.tokenize import word_tokenize # word_tokenize para tokenizar texto
 from nltk.corpus import stopwords # stopwords para filtrar palabras vacías
+from nltk.stem import SnowballStemmer # SnowballStemmer para realizar el stemming
 
 # Descargar datos necesarios para NLTK
 nltk.download('punkt')
@@ -110,8 +111,12 @@ tokens = word_tokenize(text_complete)
 stop_words = set(stopwords.words('spanish'))
 filtered_tokens = [word for word in tokens if word.isalnum() and word.lower() not in stop_words]
 
+# Aplicar stemming
+stemmer = SnowballStemmer('spanish')
+stemmed_tokens = [stemmer.stem(word) for word in filtered_tokens]
+
 # Contar la frecuencia de cada palabra
-frecuency_words = Counter(filtered_tokens)
+frecuency_words = Counter(stemmed_tokens)
 most_common_words = frecuency_words.most_common(100)
 
 # Mostrar los 100 términos más frecuentes
@@ -123,11 +128,11 @@ for word, count in most_common_words:
 word_graph = [word for word, _ in most_common_words]
 frecuency_graph = [frecuency for _, frecuency in most_common_words]
 
-print("\n*** Mostrando grafico de los 100 terminos mas frecuentes ***")
+print("\n*** Mostrando grafico de los 100 terminos mas frecuentes usando stemming ***")
 plt.figure(figsize=(15, 7))
 plt.bar(word_graph, frecuency_graph)
 plt.xticks(rotation=90)
-plt.title('100 términos más frecuentes')
+plt.title('100 términos más frecuentes usando stemming')
 plt.xlabel('Terminos')
 plt.ylabel('Frecuencia')
 plt.show()
