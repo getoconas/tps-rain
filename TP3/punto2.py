@@ -69,18 +69,20 @@ response = requests.get(url)
 
 if response.status_code == 200: # Verificar si la solicitud fue exitosa (200 OK)
   soup = BeautifulSoup(response.content, 'html.parser') # Crear un objeto BeautifulSoup para analizar el contenido HTML
-  arrayNews = soup.find_all('a', class_='story-card-ctn') # Encontrar todas las etiquetas <a> con la clase 'story-card-ctn'
-  
+  array_news = [a for a in soup.find_all('a', class_='story-card-ctn') if a.get('class') == ['story-card-ctn']] # Encontrar todas las etiquetas <a> con la clase 'story-card-ctn' y asegurarse de que la clase sea exactamente 'story-card-ctn'
+
   text = []
 
-  for i, news in enumerate(arrayNews[:10], start = 1):
+  for i, news in enumerate(array_news[:10], start = 1):
     print(f"---------- Noticia {i} ----------")
     
     news_url = news.get('href') # URL de la noticia
     
     if news_url:
       if not news_url.startswith('http'): # Verificar si la URL no comienza con 'http'
+        
         news_url = 'https://www.infobae.com' + news_url
+        print(news_url)
         details_news = get_details_news(news_url) # Obtener los detalles de la noticia en el metodo get_details_news
         if details_news:
           # Imprimir los detalles de la noticia
