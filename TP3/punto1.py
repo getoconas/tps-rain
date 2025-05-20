@@ -2,92 +2,92 @@ import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 import pandas as pd
+import networkx as nx
+import matplotlib.pyplot as plt
 
-# Metodo para obtener los enlaces que hace referencia a deportes en la pagina de infobae
 def get_html_base(url):
-  response = requests.get(url)
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
+        soup = BeautifulSoup(response.text, 'html.parser')
+        array_links = [a for a in soup.find_all('a', class_='story-card-ctn') if a.get('class') == ['story-card-ctn']]
+        hrefs = [a.get('href') for a in array_links[:30]]
+        return hrefs
+    except requests.RequestException as e:
+        print(f"*** Error al obtener la página base: {e} ***")
+        return []
 
-  if response.status_code == 200: # Verificar si la solicitud fue exitosa (200 OK)
-    soup = BeautifulSoup(response.text, 'html.parser')
+def get_referenced_news(url, base_url):
+    """Obtiene enlaces a otras noticias desde una noticia"""
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
+        soup = BeautifulSoup(response.content, 'html.parser')
+        referenced_urls = []
+        array_news = soup.find_all('a', href=True)
 
-    # Extraer enlaces de la página
-    # Encontrar todas las etiquetas <a> con la clase 'story-card-ctn' y asegurarse de que la clase sea exactamente 'story-card-ctn'
-    array_links = [a for a in soup.find_all('a', class_='story-card-ctn') if a.get('class') == ['story-card-ctn']] 
-    hrefs = []
+        for news in array_news:
+            href = news.get('href')
+            if href and ('/deportes/' in href or '/sports/' in href):  # filtrar enlaces a otras noticias de deportes
+                full_url = urljoin(base_url, href)
+                referenced_urls.append(full_url)
+        return referenced_urls
+    except requests.RequestException as e:
+        print(f"*** Error al obtener referencias desde la noticia: {e} ***")
+        return []
 
-    for i, news in enumerate(array_links[:30], start = 1):
-      href = news.get('href') # href de la noticia
-      hrefs.append(href)
-    return hrefs
-  else:
-    print(f"*** Error al obtener la página: {response.status_code} ***")
-    return None
+def build_graph(news_urls, base_url):
+    graph = nx.DiGraph()  # grafo dirigido
 
-# Obtener los href dentro de cada noticia 
-def get_html_notice(url):
-  response = requests.get(url)
-  if response.status_code == 200: # Verificar si la solicitud fue exitosa (200 OK)
-    soup = BeautifulSoup(response.content, 'html.parser') # Crear un objeto BeautifulSoup para analizar el contenido HTML
-    urls = set() # Conjunto para almacenar URLs visitadas
-    array_news = [
-      a for a in soup.find_all('a', class_=('feed-list-card', 'most-read-card-ctn'))
-      if a.get('class') == ['feed-list-card'] or a.get('class') == ['most-read-card-ctn']
-    ]
+    for source_url in news_urls:
+        print(f"Procesando noticia: {source_url}")
+        referenced = get_referenced_news(source_url, base_url)
+        for target_url in referenced:
+            if target_url in news_urls:  # solo consideramos enlaces entre las 30 noticias principales
+                if graph.has_edge(source_url, target_url):
+                    graph[source_url][target_url]['weight'] += 1
+                else:
+                    graph.add_edge(source_url, target_url, weight=1)
+    return graph
 
-    for i, news in enumerate(array_news, start = 1):
-      href = news.get('href') # href de la noticia
-      full_url = urljoin(base_url, href)
-      urls.add(full_url)
-    return urls
-  else:
-    print(f"*** Error al obtener la noticia: {response.status_code} ***")
-    return None
+def save_graph(graph, filename="TP3/grafo_noticias.graphml"):
+    nx.write_graphml(graph, filename)
+    print(f"*** Grafo exportado a {filename} ***")
 
-# Metodo para realizar el crawling de las URLs
-def crawl(url, max_depth):
-  visited = set() # Conjunto para almacenar URLs visitadas
-  queue = [(url, 0)] # Cola para almacenar URLs a visitar
-  collected_urls = []
+def draw_graph(graph):
+    plt.figure(figsize=(15, 12))
+    pos = nx.spring_layout(graph, k=0.3, iterations=50)  # distribución del grafo
+    edge_weights = nx.get_edge_attributes(graph, 'weight')
 
-  while queue:
-    current_url, current_depth = queue.pop(0)
-    if current_depth > max_depth:
-      continue
-    if current_url in visited:
-      continue
+    # Dibujar nodos y bordes
+    nx.draw_networkx_nodes(graph, pos, node_size=300, node_color='skyblue', alpha=0.8)
+    nx.draw_networkx_edges(graph, pos, width=[edge_weights[e] for e in graph.edges()], alpha=0.5, arrows=True)
+    nx.draw_networkx_labels(graph, pos, font_size=8)
 
-    print(f"Crawling {current_url} at depth {current_depth}")
-    visited.add(current_url)
-    urls = get_html_notice(current_url)
-    for url in urls:
-      # Agregar URLs de profundidad 3 sin visitarlas
-      if current_depth == 2:
-        collected_urls.append((url, current_depth + 1))
-      elif current_depth + 1 <= max_depth and url not in visited:
-        queue.append((url, current_depth + 1))  
-  
-  return collected_urls
+    # Dibujar pesos (opcional)
+    nx.draw_networkx_edge_labels(graph, pos, edge_labels=edge_weights, font_size=7)
 
-# Metodo para guardar las URLs recolectadas en un archivo Excel
-def save_to_excel(data, filename):
-  df = pd.DataFrame(data, columns=['URL', 'Depth'])
-  df.to_excel(filename, index=False)
-
-# Iniciar el crawling desde la URL inicial con una profundidad máxima de 2
+    plt.title("Grafo de Referencias entre Noticias Deportivas", fontsize=14)
+    plt.axis('off')
+    plt.tight_layout()
+    plt.savefig("TP3/grafo_noticias.png", dpi=300)
+    plt.show()
+    
+# MAIN
 base_url = "https://www.infobae.com"
 start_url = "https://www.infobae.com/deportes"
-max_depth = 2
+
+# Paso 1: obtener las 30 noticias
 href_base = get_html_base(start_url)
+news_urls = [urljoin(base_url, href) for href in href_base if href]
 
-# Recorrer los enlaces obtenidos de la pagina principal
-for href in href_base:
-  full_url = urljoin(base_url, href)
-  print('************ Link Noticia Principal: ' + full_url + ' ************')
-  collected_urls = crawl(full_url, max_depth)
+# Paso 2: construir el grafo de referencias entre noticias
+grafo = build_graph(news_urls, base_url)
 
-# Guardar las URLs recolectadas en un archivo Excel
-filename = "collected_urls.xlsx"
-save_to_excel(collected_urls, filename)
+# Paso 3: exportar a archivo
+save_graph(grafo)
 
-print("*** URLs recolectadas guardadas en el archivo collected_urls.xlsx***")
-print("*** Fin del programa ***") # Mensaje de finalización del programa
+# Llamar a la función luego de construir el grafo
+draw_graph(grafo)
+
+print("*** Fin del programa ***")
