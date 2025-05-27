@@ -1,5 +1,4 @@
 package ar.edu.unju.fi.lucene;
-
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
@@ -185,7 +184,7 @@ public class DocumentApp extends JFrame {
                     appendToConsole("Búsqueda completada. Se encontraron " + results.size() + " resultados.\n");
                 }
 
-            } catch (IOException | org.apache.lucene.queryparser.classic.ParseException e) {
+            } catch (IOException e) {
                 appendToConsole("Error durante la búsqueda: " + e.getMessage());
                 e.printStackTrace();
             } finally {
