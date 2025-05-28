@@ -24,7 +24,7 @@ public class DocumentApp extends JFrame {
 
         JPanel controlPanel = new JPanel(new GridLayout(4, 1, 5, 5)); // 4 filas para más espacio
         controlPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-
+        // Directorio de indexación
         JPanel indexDirPanel = new JPanel(new BorderLayout(5, 5));
         indexDirPanel.add(new JLabel("Directorio a Indexar:"), BorderLayout.WEST);
         directoryPathField = new JTextField(System.getProperty("user.dir") + File.separator + "documentos");
@@ -33,7 +33,7 @@ public class DocumentApp extends JFrame {
         browseButton.addActionListener(e -> chooseDirectory());
         indexDirPanel.add(browseButton, BorderLayout.EAST);
         controlPanel.add(indexDirPanel);
-
+        // Botones de Indexar y Buscar
         JPanel actionButtonsPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 0));
         JButton indexButton = new JButton("1. Indexar Documentos");
         indexButton.setFont(new Font("Arial", Font.BOLD, 14));
@@ -46,6 +46,7 @@ public class DocumentApp extends JFrame {
 
         controlPanel.add(actionButtonsPanel);
 
+        // Panel central para la búsqueda y resultados
         JPanel queryPanel = new JPanel(new BorderLayout(5, 5));
         queryPanel.add(new JLabel("Consulta de Búsqueda:"), BorderLayout.WEST);
         queryField = new JTextField();
@@ -72,6 +73,7 @@ public class DocumentApp extends JFrame {
         JScrollPane scrollPane = new JScrollPane(resultsTable);
         add(scrollPane, BorderLayout.CENTER);
 
+        // Consola de salida en la parte inferior
         consoleOutput = new JTextArea(8, 20);
         consoleOutput.setEditable(false);
         consoleOutput.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
@@ -81,7 +83,7 @@ public class DocumentApp extends JFrame {
 
         setVisible(true);
     }
-
+    //Permite al usuario elegir un directorio para indexar.
     private void chooseDirectory() {
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
@@ -91,30 +93,31 @@ public class DocumentApp extends JFrame {
             directoryPathField.setText(selectedDirectory.getAbsolutePath());
         }
     }
-
+    //Inicia el proceso de indexación en un hilo separado para no bloquear la UI.
     private void startIndexing() {
         String dirToIndex = directoryPathField.getText();
         if (dirToIndex.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Por favor, selecciona un directorio a indexar.", "Error de Directorio", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Por favor, selecciona un directorio a indexar.", 
+            "Error de Directorio", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
         File checkDir = new File(dirToIndex);
         if (!checkDir.exists() || !checkDir.isDirectory()) {
-            JOptionPane.showMessageDialog(this, "El directorio especificado no existe o no es válido: " + dirToIndex, "Error de Directorio", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "El directorio especificado no existe o no es válido: " + dirToIndex, 
+            "Error de Directorio", JOptionPane.ERROR_MESSAGE);
             return;
         }
-
-        boolean useRAM = false;
 
         consoleOutput.setText("");
         appendToConsole("Iniciando indexación de: " + dirToIndex);
         appendToConsole("Usando disco para el índice.");
 
+        // Ejecutar en un hilo separado para no congelar la UI
         new Thread(() -> {
             DocumentIndexer indexer = null;
             try {
-                indexer = new DocumentIndexer(indexPath, useRAM);
+                indexer = new DocumentIndexer(indexPath);
                 indexer.createIndex(dirToIndex);
                 appendToConsole("Indexación completada exitosamente.");
             } catch (IOException e) {
@@ -131,7 +134,7 @@ public class DocumentApp extends JFrame {
             }
         }).start();
     }
-
+    //Limpia el índice existente en disco.
     private void clearIndex() {
         int confirm = JOptionPane.showConfirmDialog(this,
                 "¿Estás seguro de que quieres eliminar el índice actual en disco (" + indexPath + ")?",
@@ -141,6 +144,7 @@ public class DocumentApp extends JFrame {
             try {
                 File indexDir = new File(indexPath);
                 if (indexDir.exists() && indexDir.isDirectory()) {
+                    // Eliminar recursivamente el contenido del directorio del índice
                     Files.walk(Paths.get(indexPath))
                             .sorted(java.util.Comparator.reverseOrder())
                             .map(java.nio.file.Path::toFile)
@@ -159,10 +163,11 @@ public class DocumentApp extends JFrame {
     private void startSearching() {
         String query = queryField.getText();
         if (query.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Por favor, introduce una consulta de búsqueda.", "Advertencia", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Por favor, introduce una consulta de búsqueda.", 
+            "Advertencia", JOptionPane.WARNING_MESSAGE);
             return;
         }
-
+        // Limpiar resultados anteriores
         tableModel.setRowCount(0);
         consoleOutput.setText("");
         appendToConsole("Buscando: \"" + query + "\"...\n");
@@ -170,15 +175,17 @@ public class DocumentApp extends JFrame {
         new Thread(() -> {
             DocumentSearcher searcher = null;
             try {
-                searcher = new DocumentSearcher(indexPath, false);
+                searcher = new DocumentSearcher(indexPath);
                 java.util.List<DocumentSearcher.SearchResult> results = searcher.search(query, 100);
 
                 if (results.isEmpty()) {
                     appendToConsole("No se encontraron resultados para: \"" + query + "\"\n");
                 } else {
+                    // Actualizar la tabla en el Event Dispatch Thread de Swing
                     SwingUtilities.invokeLater(() -> {
                         for (DocumentSearcher.SearchResult result : results) {
-                            tableModel.addRow(new Object[]{result.getFilename(), result.getPath(), String.format("%.2f", result.getScore())});
+                            tableModel.addRow(new Object[]{result.getFilename(), result.getPath(), 
+                                String.format("%.2f", result.getScore())});
                         }
                     });
                     appendToConsole("Búsqueda completada. Se encontraron " + results.size() + " resultados.\n");

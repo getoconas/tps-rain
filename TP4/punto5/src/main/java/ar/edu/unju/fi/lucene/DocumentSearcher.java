@@ -5,7 +5,6 @@ import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.Term;
-import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.search.*;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
@@ -21,7 +20,7 @@ public class DocumentSearcher {
     private IndexSearcher searcher;
     private StandardAnalyzer analyzer;
 
-    public DocumentSearcher(String indexPath, boolean useRAM) throws IOException {
+    public DocumentSearcher(String indexPath) throws IOException {
         this.analyzer = new StandardAnalyzer();
         Directory indexDirectory = FSDirectory.open(Paths.get(indexPath));
         this.reader = DirectoryReader.open(indexDirectory);
@@ -33,9 +32,9 @@ public class DocumentSearcher {
         Query query = buildCombinedQuery(queryString);
         TopDocs hits = searcher.search(query, maxResults);
         List<SearchResult> results = new ArrayList<>();
-
+        // Itera sobre los resultados y recupera la información de cada documento.
         for (ScoreDoc scoreDoc : hits.scoreDocs) {
-            Document doc = searcher.doc(scoreDoc.doc);
+            Document doc = searcher.doc(scoreDoc.doc); // Obtiene el documento Lucene por su ID interno
             results.add(new SearchResult(doc.get("filename"), doc.get("path"), scoreDoc.score));
         }
         return results;

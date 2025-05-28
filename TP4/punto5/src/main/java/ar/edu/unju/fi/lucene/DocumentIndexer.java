@@ -9,7 +9,6 @@ import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
-import org.apache.lucene.store.ByteBuffersDirectory;
 import org.apache.tika.exception.TikaException;
 import org.xml.sax.SAXException;
 
@@ -22,16 +21,11 @@ public class DocumentIndexer {
     private IndexWriter indexWriter;
     private StandardAnalyzer analyzer;
 
-    public DocumentIndexer(String indexPath, boolean useRAM) throws IOException {
-        this.analyzer = new StandardAnalyzer();
-        if (useRAM) {
-            this.indexDirectory = new ByteBuffersDirectory();
-            System.out.println("Índice creado en RAM (ByteBuffersDirectory).");
-        } else {
-            this.indexDirectory = FSDirectory.open(Paths.get(indexPath));
-            System.out.println("Indice creado en disco: " + indexPath);
-        }
+    public DocumentIndexer(String indexPath) throws IOException {
 
+        this.indexDirectory = FSDirectory.open(Paths.get(indexPath));
+        System.out.println("Indice creado en disco: " + indexPath);
+        this.analyzer = new StandardAnalyzer(); 
         IndexWriterConfig config = new IndexWriterConfig(analyzer);
         config.setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND);
 
@@ -44,9 +38,9 @@ public class DocumentIndexer {
         if (content != null && !content.trim().isEmpty()) {
             Document doc = new Document();
 
-            doc.add(new StringField("path", file.getAbsolutePath(), Store.YES));
-            doc.add(new TextField("filename", file.getName(), Store.YES));
-            doc.add(new TextField("contents", content, Store.NO));
+            doc.add(new StringField("path", file.getAbsolutePath(), Store.YES)); //guarda la ruta del archivo
+            doc.add(new TextField("filename", file.getName(), Store.YES)); // guarda el nombre del archivo
+            doc.add(new TextField("contents", content, Store.NO)); //Indexa el contenido pero no lo guarda
 
             indexWriter.addDocument(doc);
             System.out.println("Indexado: " + file.getName());
@@ -74,7 +68,7 @@ public class DocumentIndexer {
         File[] files = folder.listFiles();
         if (files != null) {
             for (File file : files) {
-                if (file.isFile()) {
+                if (file.isFile()) {  // Solo procesa archivos, no subdirectorios
                     try {
                         indexDocument(file);
                     } catch (IOException | TikaException | SAXException e) {
@@ -85,15 +79,4 @@ public class DocumentIndexer {
         }
     }
 
-    public static boolean shouldUseRAM(String directoryPath) {
-        File folder = new File(directoryPath);
-        if (!folder.isDirectory()) {
-            return false;
-        }
-
-        File[] files = folder.listFiles();
-        int documentCount = (files != null) ? files.length : 0;
-
-        return documentCount < 50;
-    }
 }
