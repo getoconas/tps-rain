@@ -11,7 +11,7 @@ from nltk.corpus import stopwords # stopwords para filtrar palabras vacías
 from nltk.stem import SnowballStemmer # SnowballStemmer para realizar el stemming
 
 # Descargar datos necesarios para NLTK
-nltk.download('punkt')
+nltk.download('punkt_tab')
 nltk.download('stopwords')
 
 # URL de la sección de economía de Infobae
