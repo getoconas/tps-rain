@@ -5,6 +5,9 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import string
 
+nltk.download('punkt') 
+nltk.download('punkt_tab') 
+nltk.download('stopwords') 
 nltk.download('inaugural')
 
 # Cargar discurso inaugural de Obama
